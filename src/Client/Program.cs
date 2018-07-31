@@ -19,8 +19,8 @@ namespace Client
             var disco = await DiscoveryClient.GetAsync("http://localhost:5000");
 
             // request token
-            var tokenClient = new TokenClient(disco.TokenEndpoint, "client", "secret");
-            var tokenResponse = await tokenClient.RequestClientCredentialsAsync("api1");
+            var tokenClient = new TokenClient(disco.TokenEndpoint, "client2", "secret");
+            var tokenResponse = await tokenClient.RequestResourceOwnerPasswordAsync("wjk","123");
 
             if (tokenResponse.IsError)
             {
@@ -31,11 +31,26 @@ namespace Client
             Console.WriteLine(tokenResponse.Json);
             Console.WriteLine("\n\n");
 
+            //call userInfo
+            var client1 = new HttpClient();
+            client1.SetBearerToken(tokenResponse.AccessToken);
+
+            var response1 = await client1.GetAsync("http://localhost:5000/connect/userinfo");
+            if (!response1.IsSuccessStatusCode)
+            {
+                Console.WriteLine(response1.StatusCode);
+            }
+            else
+            {
+                var content = await response1.Content.ReadAsStringAsync();
+                Console.WriteLine(content);
+            }
+
             // call api
             var client = new HttpClient();
             client.SetBearerToken(tokenResponse.AccessToken);
 
-            var response = await client.GetAsync("http://localhost:5001/identity");
+            var response = await client.GetAsync("http://localhost:5000/identity");
             if (!response.IsSuccessStatusCode)
             {
                 Console.WriteLine(response.StatusCode);
@@ -43,7 +58,7 @@ namespace Client
             else
             {
                 var content = await response.Content.ReadAsStringAsync();
-                Console.WriteLine(JArray.Parse(content));
+                Console.WriteLine(content);
             }
         }
     }
